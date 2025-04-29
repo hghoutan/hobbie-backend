@@ -7,7 +7,7 @@ services:
     networks:
       - springmysql-net
     environment:
-      - MYSQL_ROOT_PASSWORD=1
+      - MYSQL_ROOT_PASSWORD=""
       - MYSQL_DATABASE=hobbie_backend_db
 
   spring-backend:
