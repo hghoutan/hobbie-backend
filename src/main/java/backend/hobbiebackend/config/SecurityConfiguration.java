@@ -18,9 +18,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+
     private final HobbieUserDetailsService hobbieUserDetailsService;
     private final PasswordEncoder passwordEncoder;
-
     private final JwtFilter jwtFilter;
 
     @Autowired
@@ -32,15 +32,16 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(hobbieUserDetailsService);
+        auth.userDetailsService(hobbieUserDetailsService).passwordEncoder(passwordEncoder);
     }
 
     @Override
     public void configure(final WebSecurity webSecurity) {
         webSecurity.ignoring().antMatchers(
-                "/v3/api-docs/**",
                 "/swagger-ui/**",
-                "/swagger-ui/index.html");
+                "/swagger-ui/index.html",
+                "/v3/api-docs/**"
+        );
     }
 
     @Override
@@ -52,18 +53,25 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.cors();
-        http.csrf()
-                .disable()
+        http.csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/register", "/signup", "/authenticate", "/notification", "/password", "/swagger-ui/index.html", "/v3/api-docs", "/configuration/ui", "/swagger-resources/**",
-                        "/configuration/security", "/swagger-ui/*", "/webjars/**", "/v3/**")
-                .permitAll()
-                .anyRequest()
-                .authenticated()
+                .antMatchers(
+                        "/register",
+                        "/signup",
+                        "/authenticate",
+                        "/notification",
+                        "/password",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**",
+                        "/configuration/**",
+                        "/swagger-resources/**",
+                        "/webjars/**",
+                        "/actuator/health"  // ✅ Health endpoint exposed
+                ).permitAll()
+                .anyRequest().authenticated()
                 .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
+        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
     }
 }
